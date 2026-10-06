@@ -70,6 +70,30 @@ const Home = () => {
             </motion.div>
           )}
 
+          {user?.role === "provider" && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mb-8 p-4 max-w-xl mx-auto bg-white/90 backdrop-blur-md border-2 border-primary-200 rounded-2xl shadow-md flex flex-col sm:flex-row items-center justify-between gap-4 text-left"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-primary-100 text-primary-600 flex items-center justify-center font-bold">
+                  <Building className="w-5 h-5" />
+                </div>
+                <div>
+                  <div className="text-sm font-bold text-slate-900">Maternity Center Portal</div>
+                  <div className="text-xs text-slate-500">Manage your center, services & patient bookings</div>
+                </div>
+              </div>
+              <Link
+                to="/provider"
+                className="btn-primary py-2.5 px-5 text-sm font-semibold whitespace-nowrap flex items-center gap-2 shadow-sm w-full sm:w-auto justify-center"
+              >
+                Go to Center Portal <ArrowRight className="w-4 h-4" />
+              </Link>
+            </motion.div>
+          )}
+
           <motion.div
              initial={{ opacity: 0, y: 20 }}
              animate={{ opacity: 1, y: 0 }}
@@ -240,7 +264,7 @@ const Home = () => {
          <div className="relative z-10 max-w-4xl mx-auto text-center px-4">
             <h2 className="text-3xl md:text-4xl font-bold text-white mb-6">Register Your Center</h2>
             <p className="text-primary-100 text-lg mb-10 max-w-2xl mx-auto">Join the MaternityHub network to showcase your facility and manage patient appointments seamlessly.</p>
-            <Link to="/register" className="inline-block bg-white text-primary-600 font-bold px-8 py-4 rounded-xl hover:bg-slate-50 transition-colors shadow-lg">
+            <Link to="/register?role=provider" className="inline-block bg-white text-primary-600 font-bold px-8 py-4 rounded-xl hover:bg-slate-50 transition-colors shadow-lg">
               Create Provider Account
             </Link>
          </div>

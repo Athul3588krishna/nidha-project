@@ -9,14 +9,27 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Mock user fetch for now if token exists
-    if (token) {
-      // In a real app we'd fetch profile from /api/users/profile
-      // For this scaffold, we'll set a mock user to allow routing
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) setUser(JSON.parse(storedUser));
-    }
-    setLoading(false);
+    const fetchCurrentUser = async () => {
+      if (token) {
+        try {
+          const res = await api.get("/auth/me");
+          setUser(res.data);
+          localStorage.setItem("user", JSON.stringify(res.data));
+        } catch (err) {
+          console.warn("Session expired or invalid token:", err.message);
+          // Fall back to stored user if offline, or logout if 401
+          if (err.response?.status === 401) {
+            logout();
+          } else {
+            const storedUser = localStorage.getItem("user");
+            if (storedUser) setUser(JSON.parse(storedUser));
+          }
+        }
+      }
+      setLoading(false);
+    };
+
+    fetchCurrentUser();
   }, [token]);
 
   const login = async (email, password) => {
@@ -32,6 +45,15 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  const setAuthSession = (authData) => {
+    if (authData?.token) {
+      localStorage.setItem("token", authData.token);
+      localStorage.setItem("user", JSON.stringify(authData));
+      setToken(authData.token);
+      setUser(authData);
+    }
+  };
+
   const logout = () => {
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -39,8 +61,21 @@ export const AuthProvider = ({ children }) => {
     setUser(null);
   };
 
+  const refreshUser = async () => {
+    if (token) {
+      try {
+        const res = await api.get("/auth/me");
+        setUser(res.data);
+        localStorage.setItem("user", JSON.stringify(res.data));
+        return res.data;
+      } catch (err) {
+        console.error("Failed to refresh user:", err);
+      }
+    }
+  };
+
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, token, loading, login, logout, setAuthSession, refreshUser }}>
       {children}
     </AuthContext.Provider>
   );

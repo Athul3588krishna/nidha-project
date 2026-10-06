@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { HeartPulse, Menu, User, ShieldAlert, Calendar } from "lucide-react";
+import { HeartPulse, Menu, User, ShieldAlert, Calendar, Building } from "lucide-react";
 import { useContext, useState } from "react";
 import { AuthContext } from "../context/AuthContext";
 
@@ -32,6 +32,14 @@ export const Navbar = () => {
                     >
                       <ShieldAlert className="w-4 h-4 text-primary-500" />
                       Control Center
+                    </Link>
+                  ) : user.role === 'provider' ? (
+                    <Link
+                      to="/provider"
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-primary-50 text-primary-700 font-bold text-xs border border-primary-200 hover:bg-primary-100 transition-all shadow-sm"
+                    >
+                      <Building className="w-4 h-4 text-primary-500" />
+                      Center Portal
                     </Link>
                   ) : (
                     <Link
@@ -81,6 +89,15 @@ export const Navbar = () => {
                     >
                       <ShieldAlert className="w-4 h-4 text-primary-500" />
                       Admin Control Center
+                    </Link>
+                  ) : user.role === 'provider' ? (
+                    <Link
+                      to="/provider"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl bg-primary-50 text-primary-700 font-bold text-sm border border-primary-200"
+                    >
+                      <Building className="w-4 h-4 text-primary-500" />
+                      Maternity Center Portal
                     </Link>
                   ) : (
                     <Link

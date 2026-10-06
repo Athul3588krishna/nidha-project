@@ -403,9 +403,62 @@ class LocalStore {
         return true;
     }
 
+    // Services
+    getServicesByCenterId(centerId) {
+        return this.data.services.filter(s => s.center === centerId || String(s.center) === String(centerId));
+    }
+
+    addService(centerId, serviceData) {
+        const id = generateId();
+        const newService = {
+            _id: id,
+            center: centerId,
+            serviceName: serviceData.serviceName,
+            description: serviceData.description || '',
+            price: Number(serviceData.price) || 0,
+            duration: serviceData.duration || '60 mins',
+            availability: serviceData.availability !== false
+        };
+        this.data.services.push(newService);
+        this.save();
+        return newService;
+    }
+
+    updateService(serviceId, updateData) {
+        const service = this.data.services.find(s => s._id === serviceId || String(s._id) === String(serviceId));
+        if (!service) return null;
+        if (updateData.serviceName) service.serviceName = updateData.serviceName;
+        if (updateData.description !== undefined) service.description = updateData.description;
+        if (updateData.price !== undefined) service.price = Number(updateData.price);
+        if (updateData.duration) service.duration = updateData.duration;
+        if (updateData.availability !== undefined) service.availability = updateData.availability;
+        this.save();
+        return service;
+    }
+
+    deleteService(serviceId) {
+        const index = this.data.services.findIndex(s => s._id === serviceId || String(s._id) === String(serviceId));
+        if (index !== -1) {
+            this.data.services.splice(index, 1);
+            this.save();
+            return true;
+        }
+        return false;
+    }
+
     // Bookings
     getAllBookings() {
         return [...this.data.bookings].sort((a, b) => new Date(b.createdAt || b.bookingDate) - new Date(a.createdAt || a.bookingDate));
+    }
+
+    getBookingsByCenterId(centerId) {
+        return this.data.bookings
+            .filter(b => (b.center?._id === centerId || String(b.center?._id) === String(centerId) || b.center === centerId || String(b.center) === String(centerId)))
+            .sort((a, b) => new Date(b.createdAt || b.bookingDate) - new Date(a.createdAt || a.bookingDate));
+    }
+
+    findBookingById(id) {
+        return this.data.bookings.find(b => b._id === id || String(b._id) === String(id)) || null;
     }
 
     createBooking(bookingData) {

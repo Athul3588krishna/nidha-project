@@ -26,9 +26,66 @@
       "phone": "+1 (555) 234-5678",
       "role": "user",
       "createdAt": "2026-09-09T05:12:33.284Z"
+    },
+    {
+      "_id": "6ac2387b0e38e4e9f8d2acd2",
+      "name": "Dr. Ananya Nair",
+      "email": "contact@cradlecare.com",
+      "password": "$2b$10$.xktWfvYU5Y1CQ47tTqDte./UeXd.vm9TkVjaOzKknu5AZa/fThSm",
+      "phone": "9876543210",
+      "role": "provider",
+      "createdAt": "2026-10-04T11:28:59.792Z"
+    },
+    {
+      "_id": "6ac23c69350dd79a93015a93",
+      "name": "Test Mother",
+      "email": "testpatient_1791114345833@example.com",
+      "password": "$2b$10$ojB7F9i4ys7k47FGSKu3UOU6QM1BBQeIYeSdehIVXb7bM5m77/zqO",
+      "phone": "9876543210",
+      "role": "user",
+      "createdAt": "2026-10-04T11:45:45.902Z"
+    },
+    {
+      "_id": "6ac23c6a7ee19d030806eb2a",
+      "name": "Dr. Deepa Menon",
+      "email": "provider_1791114345974@blissmaternity.org",
+      "password": "$2b$10$KZK95jzuah3EuIFZq7p45uCWBsnGhCDqrGtinWN1btu1hnn6sO0Je",
+      "phone": "9123456789",
+      "role": "provider",
+      "createdAt": "2026-10-04T11:45:46.081Z"
     }
   ],
   "centers": [
+    {
+      "_id": "6ac23c6905c67b2ea487f91b",
+      "centerName": "Bliss Mother & Child Hospital",
+      "ownerName": "Dr. Deepa Menon",
+      "email": "provider_1791114345974@blissmaternity.org",
+      "password": "$2b$10$idPuY44OpPaMmOEDAp6EI.XXnRQMVZwua5Zb05qwlR5t7PYB8MqcW",
+      "phone": "9123456788",
+      "address": "Panampilly Nagar, Suite 101",
+      "location": "Kochi, Kerala",
+      "description": "Updated luxury natural birthing suites with certified doulas.",
+      "status": "Approved",
+      "rating": 4.9,
+      "reviewsCount": 0,
+      "createdAt": "2026-10-04T11:45:46.029Z"
+    },
+    {
+      "_id": "6ac2387ba833b1f89f64ba64",
+      "centerName": "Cradle Care Birthing Hospital",
+      "ownerName": "Dr. Ananya Nair",
+      "email": "contact@cradlecare.com",
+      "password": "$2b$10$Q6xKlkW3uDSdG7aUd.V7wenRZEbzC4opLXb5pCOWrbTQSU/ZDP3US",
+      "phone": "9876543210",
+      "address": "MG Road, Suite 500",
+      "location": "Kochi, Kerala",
+      "description": "Specialized water birth suites, Level III NICU, expert lactation consultants.",
+      "status": "Pending",
+      "rating": 4.9,
+      "reviewsCount": 0,
+      "createdAt": "2026-10-04T11:28:59.711Z"
+    },
     {
       "_id": "6aa0eac1e70b19c68ac3f230",
       "centerName": "Blossom Maternity Center",
@@ -171,6 +228,42 @@
       "price": 45000,
       "duration": "24 Hours Care",
       "availability": true
+    },
+    {
+      "_id": "6ac2387b75c26563043e6dcb",
+      "center": "6ac2387ba833b1f89f64ba64",
+      "serviceName": "Comprehensive Prenatal Consultation",
+      "description": "Full obstetric checkup and fetal ultrasound review.",
+      "price": 3000,
+      "duration": "60 mins",
+      "availability": true
+    },
+    {
+      "_id": "6ac2387b22c812e795c57e5c",
+      "center": "6ac2387ba833b1f89f64ba64",
+      "serviceName": "Postnatal Lactation & Newborn Nursing",
+      "description": "Certified nurse consultation and infant latch guidance.",
+      "price": 3500,
+      "duration": "60 mins",
+      "availability": true
+    },
+    {
+      "_id": "6ac23c6aa50f942197a6af68",
+      "center": "6ac23c6905c67b2ea487f91b",
+      "serviceName": "Comprehensive Prenatal Consultation",
+      "description": "Full obstetric checkup and fetal ultrasound review.",
+      "price": 3000,
+      "duration": "60 mins",
+      "availability": true
+    },
+    {
+      "_id": "6ac23c6a459397a7b3f77fc5",
+      "center": "6ac23c6905c67b2ea487f91b",
+      "serviceName": "Postnatal Lactation & Newborn Nursing",
+      "description": "Certified nurse consultation and infant latch guidance.",
+      "price": 3500,
+      "duration": "60 mins",
+      "availability": true
     }
   ],
   "reviews": [
@@ -208,6 +301,62 @@
       "bookingDate": "2026-09-12T05:12:33.808Z",
       "bookingStatus": "Accepted",
       "createdAt": "2026-09-09T05:12:33.808Z"
+    },
+    {
+      "_id": "6ac23c69c0679206bcea46b6",
+      "user": {
+        "_id": "6ac23c69350dd79a93015a93",
+        "name": "Test Mother",
+        "email": "testpatient_1791114345833@example.com",
+        "phone": "9876543210"
+      },
+      "center": {
+        "_id": "6aa0eac1e70b19c68ac3f230",
+        "centerName": "Blossom Maternity Center",
+        "address": "450 Healthcare Ave, Suite 200",
+        "location": "San Francisco, CA",
+        "phone": "+1 (415) 555-0192"
+      },
+      "service": {
+        "_id": "6aa0eac12bc9f11a512081bb",
+        "serviceName": "Maternity Service",
+        "price": 3000,
+        "duration": "60 mins"
+      },
+      "bookingDate": "2026-10-06T11:45:45.965Z",
+      "bookingStatus": "Pending",
+      "patientPhone": "9876543210",
+      "notes": "Automated test booking",
+      "createdAt": "2026-10-04T11:45:45.968Z",
+      "updatedAt": "2026-10-04T11:45:45.968Z"
+    },
+    {
+      "_id": "6ac23c6a9de4b80f7f53ea4f",
+      "user": {
+        "_id": "6ac23c69350dd79a93015a93",
+        "name": "Test Mother",
+        "email": "testpatient_1791114345833@example.com",
+        "phone": "9876543210"
+      },
+      "center": {
+        "_id": "6ac23c6905c67b2ea487f91b",
+        "centerName": "Bliss Mother & Child Hospital",
+        "address": "Panampilly Nagar, Suite 101",
+        "location": "Kochi, Kerala",
+        "phone": "9123456788"
+      },
+      "service": {
+        "_id": "6ac23c6a3941a7d0114d8dd2",
+        "serviceName": "Maternity Service",
+        "price": 3000,
+        "duration": "60 mins"
+      },
+      "bookingDate": "2026-10-07T11:45:46.144Z",
+      "bookingStatus": "Accepted",
+      "patientPhone": "9876543210",
+      "notes": "First prenatal visit",
+      "createdAt": "2026-10-04T11:45:46.146Z",
+      "updatedAt": "2026-10-04T11:45:46.149Z"
     }
   ]
 }

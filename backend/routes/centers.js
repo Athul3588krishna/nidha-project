@@ -77,6 +77,57 @@ router.get('/admin/all', protect, adminOnly, async (req, res) => {
     }
 });
 
+// @route   GET /api/centers/provider/me
+// @desc    Get the current logged-in provider's maternity center with services & reviews
+// @access  Private (Provider or Admin)
+router.get('/provider/me', protect, async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            let center = await MaternityCenter.findOne({ email: req.user.email }).select('-password').lean();
+            if (!center && req.user.role === 'admin') {
+                center = await MaternityCenter.findOne({}).select('-password').lean();
+            }
+            if (!center) {
+                return res.status(404).json({ message: 'No maternity center associated with this provider account' });
+            }
+
+            const services = await Service.find({ center: center._id });
+            const reviews = await Review.find({ center: center._id }).populate('user', 'name');
+            const avgRating = reviews.length > 0
+                ? Number((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length).toFixed(1))
+                : 4.8;
+
+            return res.json({
+                ...center,
+                services,
+                reviews,
+                rating: avgRating,
+                reviewsCount: reviews.length
+            });
+        }
+
+        // Local store fallback
+        let center = localStore.findCenterByEmail(req.user.email);
+        if (!center && req.user.role === 'admin') {
+            const all = localStore.getAllCenters();
+            center = all[0] || null;
+        }
+        if (!center) {
+            return res.status(404).json({ message: 'No maternity center associated with this provider account' });
+        }
+        const services = localStore.getServicesByCenterId(center._id);
+        const reviews = (localStore.data.reviews || []).filter(r => r.center === center._id || String(r.center) === String(center._id));
+        return res.json({
+            ...center,
+            services,
+            reviews
+        });
+    } catch (error) {
+        console.error('Fetch provider center error:', error);
+        res.status(500).json({ message: error.message || 'Error fetching provider center' });
+    }
+});
+
 // @route   GET /api/centers/:id
 // @desc    Get single center by ID with its services & reviews
 // @access  Public
@@ -181,6 +232,124 @@ router.put('/:id', protect, async (req, res) => {
             return res.status(404).json({ message: 'Maternity center not found' });
         }
         return res.json(center);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   POST /api/centers/:id/services
+// @desc    Add a new service to maternity center (Owner or Admin)
+// @access  Private
+router.post('/:id/services', protect, async (req, res) => {
+    try {
+        const { serviceName, description, price, duration } = req.body;
+        if (!serviceName || !price) {
+            return res.status(400).json({ message: 'Service name and price are required' });
+        }
+
+        if (mongoose.connection.readyState === 1) {
+            const center = await MaternityCenter.findById(req.params.id);
+            if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+            if (req.user.role !== 'admin' && center.email !== req.user.email) {
+                return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+            }
+
+            const service = await Service.create({
+                center: center._id,
+                serviceName: serviceName.trim(),
+                description: description ? description.trim() : '',
+                price: Number(price),
+                duration: duration || '60 mins',
+                availability: true
+            });
+
+            return res.status(201).json({ message: 'Service added successfully', service });
+        }
+
+        // Local store fallback
+        const center = localStore.findCenterById(req.params.id);
+        if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+        if (req.user.role !== 'admin' && center.email !== req.user.email) {
+            return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+        }
+
+        const service = localStore.addService(center._id, {
+            serviceName: serviceName.trim(),
+            description: description ? description.trim() : '',
+            price: Number(price),
+            duration: duration || '60 mins',
+            availability: true
+        });
+
+        return res.status(201).json({ message: 'Service added successfully', service });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   PUT /api/centers/:id/services/:serviceId
+// @desc    Update a service (Owner or Admin)
+// @access  Private
+router.put('/:id/services/:serviceId', protect, async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            const center = await MaternityCenter.findById(req.params.id);
+            if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+            if (req.user.role !== 'admin' && center.email !== req.user.email) {
+                return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+            }
+
+            const updated = await Service.findOneAndUpdate(
+                { _id: req.params.serviceId, center: center._id },
+                req.body,
+                { new: true }
+            );
+            if (!updated) return res.status(404).json({ message: 'Service not found' });
+
+            return res.json({ message: 'Service updated successfully', service: updated });
+        }
+
+        // Local store fallback
+        const center = localStore.findCenterById(req.params.id);
+        if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+        if (req.user.role !== 'admin' && center.email !== req.user.email) {
+            return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+        }
+
+        const service = localStore.updateService(req.params.serviceId, req.body);
+        if (!service) return res.status(404).json({ message: 'Service not found' });
+
+        return res.json({ message: 'Service updated successfully', service });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+});
+
+// @route   DELETE /api/centers/:id/services/:serviceId
+// @desc    Delete a service (Owner or Admin)
+// @access  Private
+router.delete('/:id/services/:serviceId', protect, async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            const center = await MaternityCenter.findById(req.params.id);
+            if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+            if (req.user.role !== 'admin' && center.email !== req.user.email) {
+                return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+            }
+
+            await Service.findOneAndDelete({ _id: req.params.serviceId, center: center._id });
+            return res.json({ message: 'Service deleted successfully' });
+        }
+
+        // Local store fallback
+        const center = localStore.findCenterById(req.params.id);
+        if (!center) return res.status(404).json({ message: 'Maternity center not found' });
+        if (req.user.role !== 'admin' && center.email !== req.user.email) {
+            return res.status(403).json({ message: 'Not authorized to manage services for this center' });
+        }
+
+        localStore.deleteService(req.params.serviceId);
+        return res.json({ message: 'Service deleted successfully' });
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

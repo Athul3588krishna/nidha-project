@@ -139,10 +139,50 @@ router.get('/my', protect, async (req, res) => {
     }
 });
 
+// @route   GET /api/bookings/provider
+// @desc    Get bookings specifically for the logged-in provider's center
+// @access  Private (Provider / Admin)
+router.get('/provider', protect, async (req, res) => {
+    try {
+        if (mongoose.connection.readyState === 1) {
+            let center = await MaternityCenter.findOne({ email: req.user.email });
+            if (!center && req.user.role === 'admin') {
+                center = await MaternityCenter.findOne({});
+            }
+            if (!center) {
+                return res.status(404).json({ message: 'No maternity center found for this provider account' });
+            }
+
+            const bookings = await Booking.find({ center: center._id })
+                .populate('user', 'name email phone')
+                .populate('center', 'centerName address location phone email')
+                .populate('service', 'serviceName price duration description')
+                .sort({ createdAt: -1 });
+
+            return res.json(bookings);
+        }
+
+        // Local store fallback
+        let center = localStore.findCenterByEmail(req.user.email);
+        if (!center && req.user.role === 'admin') {
+            center = localStore.getAllCenters()[0];
+        }
+        if (!center) {
+            return res.status(404).json({ message: 'No maternity center found for this provider account' });
+        }
+
+        const bookings = localStore.getBookingsByCenterId(center._id);
+        return res.json(bookings);
+    } catch (error) {
+        console.error('Fetch provider bookings error:', error);
+        res.status(500).json({ message: error.message || 'Error fetching provider bookings' });
+    }
+});
+
 // @route   PUT /api/bookings/:id/status
-// @desc    Update booking status (Admin only)
-// @access  Private/Admin
-router.put('/:id/status', protect, adminOnly, async (req, res) => {
+// @desc    Update booking status (Admin or Center Provider)
+// @access  Private
+router.put('/:id/status', protect, async (req, res) => {
     try {
         const { status } = req.body;
         const validStatuses = ['Pending', 'Accepted', 'Rejected', 'Completed'];
@@ -154,6 +194,13 @@ router.put('/:id/status', protect, adminOnly, async (req, res) => {
             const booking = await Booking.findById(req.params.id);
             if (!booking) {
                 return res.status(404).json({ message: 'Booking not found' });
+            }
+
+            if (req.user.role !== 'admin') {
+                const center = await MaternityCenter.findById(booking.center);
+                if (!center || center.email !== req.user.email) {
+                    return res.status(403).json({ message: 'Not authorized to manage appointments for this center' });
+                }
             }
 
             booking.bookingStatus = status;
@@ -168,10 +215,20 @@ router.put('/:id/status', protect, adminOnly, async (req, res) => {
         }
 
         // Local store fallback
-        const updated = localStore.updateBookingStatus(req.params.id, status);
-        if (!updated) {
+        const booking = localStore.findBookingById(req.params.id);
+        if (!booking) {
             return res.status(404).json({ message: 'Booking not found' });
         }
+
+        if (req.user.role !== 'admin') {
+            const center = localStore.findCenterByEmail(req.user.email);
+            const bookingCenterId = booking.center?._id || booking.center;
+            if (!center || (center._id !== bookingCenterId && String(center._id) !== String(bookingCenterId))) {
+                return res.status(403).json({ message: 'Not authorized to manage appointments for this center' });
+            }
+        }
+
+        const updated = localStore.updateBookingStatus(req.params.id, status);
         return res.json({ message: `Booking status updated to ${status}`, booking: updated });
     } catch (error) {
         console.error('Update booking status error:', error);
